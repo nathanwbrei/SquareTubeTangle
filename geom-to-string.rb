@@ -19,24 +19,32 @@
 class SquareTubeTangleTool
 
 	class Block
-		attr_accessor :x, :y, :z
-		def initialize(x, y, z, d)
-			@x = x
-			@y = y
-			@z = z
-			@d = d
+		attr_accessor :x, :t, :n
+		def initialize(last_x,t,n) 
+			d = 100
+			x,y,z = last_x
+			t1,t2,t3 = t
+			@x = [x+d*t1, y+d*t2, z+d*t3]
+			@t = t
+			@n = n
 			show
 		end
+
 		def show
 			# Adds block geometry (a cube) to the current sketch, saving references so that hide() can delete it later if necessary
-			p0=[@x,@y,@z]
- 			p1=[@x+@d,@y,@z]
- 			p2=[@x+@d,@y+@d,@z]
- 			p3=[@x,@y+@d,@z] 		
- 			p4=[@x,@y,@z+@d]
- 			p5=[@x+@d,@y,@z+@d]
- 			p6=[@x+@d,@y+@d,@z+@d]
- 			p7=[@x,@y+@d,@z+@d]
+			x,y,z=@x
+			d=100
+			puts "t: (#{t[0]}, #{t[1]}, #{t[2]})"
+			puts "n: (#{n[0]}, #{n[1]}, #{n[2]})"
+			
+			p0=[x,y,z]
+ 			p1=[x+d,y,z]
+ 			p2=[x+d,y+d,z]
+ 			p3=[x,y+d,z] 		
+ 			p4=[x,y,z+d]
+ 			p5=[x+d,y,z+d]
+ 			p6=[x+d,y+d,z+d]
+ 			p7=[x,y+d,z+d]
 
  			# We are adding six faces for simplicity, but later, if we keep closer track of orientation, we'll only add four.
  			new_faces = [[p0, p1, p2, p3], [p0, p1, p5, p4], [p1, p2, p6, p5], [p2, p3, p7, p6], [p3, p0, p4, p7], [p4, p5, p6, p7]]
@@ -77,12 +85,10 @@ class SquareTubeTangleTool
 	end
 
     def activate
-    	@d = 100
-    	@blocks = [Block.new(0,0,0, @d)]
+    	@blocks = [Block.new([-100,0,0], [1,0,0], [0,0,1])]
+    	@string = "s"
 
-    	welcome = "Welcome to my SquareTubeTangle creator. Keys are up/down/right/left/ctrl/alt/esc/return. "
-    	print welcome
-    	UI.messagebox(welcome)
+    	puts "Welcome to my SquareTubeTangle creator. Keys are up/down/right/left/ctrl/alt/esc/return. "
     end
 
     def reset(view)
@@ -98,31 +104,78 @@ class SquareTubeTangleTool
     end
 
     def onKeyDown(key, repeat, flags, view)
+
+		x,t,n = @blocks.last.x, @blocks.last.t, @blocks.last.n
     	case key
+
 			when VK_LEFT
-				@blocks.push(Block.new(@blocks.last.x-@d, @blocks.last.y, @blocks.last.z, @d))
+				@string += "l"
 
   			when VK_RIGHT
-  				@blocks.push(Block.new(@blocks.last.x+@d, @blocks.last.y, @blocks.last.z, @d))
+  				@string += "r"
 
   			when VK_UP
-  				@blocks.push(Block.new(@blocks.last.x, @blocks.last.y+@d, @blocks.last.z, @d))
+  				@string += "u"
 
   			when VK_DOWN
-  				@blocks.push(Block.new(@blocks.last.x, @blocks.last.y-@d, @blocks.last.z, @d))
+  				@string += "d"
 
 			when VK_CONTROL
-				@blocks.push(Block.new(@blocks.last.x, @blocks.last.y, @blocks.last.z+@d, @d))
-
-			when VK_ALT
-				@blocks.push(Block.new(@blocks.last.x, @blocks.last.y, @blocks.last.z-@d, @d))
+	    		@string += "f"
 
 			when 27
-				# User hits ESC
 				block = @blocks.pop().hide() if @blocks.length > 1
+
 		end
+		puts @string
+		parse @string.split('').last
     end
+
+
+    def parse(l)
+		puts "l is: #{l}"
+		puts "@blocks is #{@blocks}"
+		puts "@blocks.length is #{@blocks.length}"
+		l.split('').each do |c| 
+			puts "dealing with c=#{c}"
+			x,t,n = @blocks.last.x, @blocks.last.t, @blocks.last.n
+	    	case c
+				when 'l'
+					puts "Found an L"
+					tp,np = cross(n,t),n
+		    		@blocks.push(Block.new(x,tp,np))
+
+	  			when 'r'
+	  				tp,np = cross(t,n),n
+		    		@blocks.push(Block.new(x,tp,np))
+
+	  			when 'u'
+	  				tp,np = n,minus(t)
+		    		@blocks.push(Block.new(x,tp,np))
+
+	  			when 'd'
+	  				tp,np = minus(n),t
+		    		@blocks.push(Block.new(x,tp,np))
+
+				when 'f'
+		    		@blocks.push(Block.new(x,t,n))
+
+			end
+	    end
+	end
 end
+
+def minus(a)
+	x,y,z = a
+	[-x,-y,-z]
+end
+
+
+def cross(a,b)
+	# Vector cross-product
+    [a[1]*b[2]-a[2]*b[1], -a[0]*b[2]+a[2]*b[0], a[0]*b[1]-a[1]*b[0]]
+end
+
 
 #UI.menu("Tools").add_separator()
 #UI.menu("Tools").add_item("SquareTubeTangle") {Sketchup.active_model.select_tool(SquareTubeTool.new())}
