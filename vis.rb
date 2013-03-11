@@ -58,13 +58,15 @@ def face(f,t)
 	face
 end
 
+def edge(v1,v2)
+	Sketchup.active_model.entities.add_edges([v1,v2]).first
+end
+
 def vis(s, f, t, n)
 	# s: the string to visualize
 	# (f,t,n): the current state. Consists of face=[v1,v2,v3,v4], tan, norm 
 	# Faces won't necessarily persist, so we re-generate the face each 
 	# time from its vertices
-
-	
 
 	# Iterate over each char in the string 
 	s.split('').each do |c|
@@ -74,7 +76,6 @@ def vis(s, f, t, n)
 		# Turning right requires a forward motion first. This goes against
 		# Turtle Graphics conventions but makes much more sense given
 		# the origami discipline.
-
 
 		face(f,t).pushpull(D)
 		f=[plus(v0,times(t,D)), plus(v1,times(t,D)), plus(v2,times(t,D)), plus(v3,times(t,D))]
@@ -94,12 +95,22 @@ def vis(s, f, t, n)
 			f = [plus(v0, times(t,-D)), v0, v3, plus(v3,times(t,-D))]
 			t = cross(t,n)
 		end
-		
-		puts "Just ran " + c + ". face is now "+f.inspect
+
 		Sketchup.active_model.selection.clear
 		Sketchup.active_model.selection.add(face(f,t))
+		Sketchup.active_model.active_view.refresh
 	end
+
+	zoom = 2000
+	eye = plus(plus(plus(f[0], times(t,zoom)), times(n,zoom)), times(cross(n,t), zoom))
+	target = f[0]
+	up = n
+	view = Sketchup.active_model.active_view
+    view.camera = Sketchup::Camera.new(eye, target, up),0.5
+
+    puts ""
 	[f,t,n]
+
 end
 
 
