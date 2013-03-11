@@ -14,11 +14,18 @@
 
 class SquareTubeTangleTool
 
-    def activate
-    	@string = "s"
-    	@x = start
+    attr_writer :x
+    attr_writer :string
 
-    	puts "Welcome to my SquareTubeTangle creator. Keys are up/down/right/left/ctrl/alt/esc/return. "
+    def activate
+
+      k = UI.inputbox ["Paste L-string:"], [@string], "SquareTubeTangle"
+      if k
+        @string = k[0]
+        @x = start
+        Sketchup.active_model.entities.clear!
+        @x = vis(@string, *@x)
+      end
     end
 
     def reset(view)
@@ -37,14 +44,14 @@ class SquareTubeTangleTool
     	case key
 			when VK_LEFT
         if @string[-2..-1] != "ll"
-          s = "r"
+          s = "l"
   				@string += s
 	 			  @x = vis(s, *@x)
         end
 
   		when VK_RIGHT
         if @string[-2..-1] != "rr"
-  				s = "l"
+  				s = "r"
 	 			  @string += s
 				  @x = vis(s, *@x)
         end
@@ -82,31 +89,30 @@ class SquareTubeTangleTool
     ph = Sketchup.active_model.active_view.pick_helper
     ph.do_pick x,y
     clicked = ph.best_picked
-    puts clicked.inspect
     if clicked.class == Sketchup::Face
       if clicked == face(@x[0],@x[1])
         @x=vis("f",*@x)
       elsif clicked.edges.member?(edge(@x[0][0], @x[0][1]))
-        puts "UP"
         @x = vis("u", *@x)
       elsif clicked.edges.member?(edge(@x[0][3], @x[0][0]))
-        puts "down"
         @x = vis("d", *@x)
       elsif clicked.edges.member?(edge(@x[0][2], @x[0][3]))
-        puts "right"
         @x = vis("r", *@x)
       elsif clicked.edges.member?(edge(@x[0][1], @x[0][2]))
-        puts "left"
         @x = vis("l", *@x)
       end
     end
   end
 end
 
-#UI.menu("Tools").add_separator()
-#UI.menu("Tools").add_item("SquareTubeTangle") {Sketchup.active_model.select_tool(SquareTubeTool.new())}
+load("~/SquareTubeTangle/vis.rb")
+
 tool = SquareTubeTangleTool.new
+tool.string = "s"
 tool.x = start
 Sketchup.active_model.select_tool(tool)
-load "~/SquareTubeTangle/vis.rb"
+
+UI.menu("Tools").add_separator()
+UI.menu("Tools").add_item("SquareTubeTangle") {Sketchup.active_model.select_tool(tool)}
+UI.menu("Tools").add_separator()
 
