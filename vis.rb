@@ -76,24 +76,31 @@ def vis(s, f, t, n)
 		# Turning right requires a forward motion first. This goes against
 		# Turtle Graphics conventions but makes much more sense given
 		# the origami discipline.
-
-		face(f,t).pushpull(D)
-		f=[plus(v0,times(t,D)), plus(v1,times(t,D)), plus(v2,times(t,D)), plus(v3,times(t,D))]
-		v0, v1, v2, v3 = f
+		if "^_<>-".index(c)
+			face(f,t).pushpull(D)
+			f=[plus(v0,times(t,D)), plus(v1,times(t,D)), plus(v2,times(t,D)), plus(v3,times(t,D))]
+			v0, v1, v2, v3 = f
+		end
 		
 		case c
-		when 'u'
+		when '^'
 			f=[plus(v0,times(t,-D)), plus(v1,times(t,-D)), v1,v0]
 			t,n = n,minus(t)
-		when 'd'
+		when '_'
 			f=[v3, v2, plus(v2,times(t,-D)), plus(v3,times(t,-D))]
 			t,n = minus(n),t
-		when 'l'
+		when '<'
 			f=[v1, plus(v1,times(t,-D)), plus(v2,times(t,-D)), v2]
 			t = cross(n,t)
-		when 'r'
+		when '>'
 			f = [plus(v0, times(t,-D)), v0, v3, plus(v3,times(t,-D))]
 			t = cross(t,n)
+		when '\\'
+			f = [v3, v0, v1, v2]
+			n = cross(t,n)
+		when '/'
+			f = [v1, v2, v3, v0]
+			n = cross(n,t)
 		end
 
 		Sketchup.active_model.selection.clear
